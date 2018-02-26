@@ -8,8 +8,6 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-      
-    
 
     working_directory: ~/repo
 
@@ -21,18 +19,6 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "build.sbt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-dependencies--{{ checksum "build.sbt" }}
-        
       # run tests!
       - run: ./check-schema.sc http://gdom.graphene-python.org/graphql http://gdom.graphene-python.org/graphql
       - run: ./check-schema.sc ./test/old-schema.graphql ./test/new-schema.graphql
