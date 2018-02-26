@@ -1,0 +1,11 @@
+schema {
+  query: QueryRoot
+}
+
+type QueryRoot {
+  repository(name: String!): Repository!
+}
+
+type Repository {
+  name: String
+}

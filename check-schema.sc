@@ -1,0 +1,82 @@
+#!/usr/bin/env amm
+
+import $ivy.`org.sangria-graphql::sangria:1.4.0`, sangria.schema._, sangria.parser._
+import $ivy.`org.sangria-graphql::sangria-circe:1.2.1`, io.circe.Json
+import $ivy.`io.circe::circe-jawn:0.9.1`, io.circe._
+import $ivy.`org.sangria-graphql::sangria-circe:1.2.1`, sangria.marshalling.circe._
+import $ivy.`org.scalaj::scalaj-http:2.3.0`, scalaj.http.Http
+
+import ammonite.ops._
+
+import java.io.File
+import scala.io.Source
+
+
+def parseIntrospectionSchemaJson(json: Json): Schema[_, _] = {
+  val builder = new DefaultIntrospectionSchemaBuilder[Unit]
+  Schema.buildFromIntrospection[Unit, Json](json, builder)
+}
+
+def parseIntrospectionSchemaFile(schemaFile: File): Either[Throwable, Schema[_, _]] = {
+  io.circe.jawn
+    .parseFile(schemaFile) match {
+    case Left(error) => Left(error)
+    case Right(json) =>
+      Right(parseIntrospectionSchemaJson(json))
+  }
+}
+
+def parseGraphQLFile(graphqlFile: File): Either[Throwable, Schema[_, _]] = {
+  val ast = QueryParser.parse(Source.fromFile(graphqlFile).getLines().mkString("\n"))
+  Right(Schema.buildFromAst(ast.get))
+}
+
+def parseIntrospectionSchemaUri(uri: String): Either[Throwable, Schema[_, _]] = {
+  val query = sangria.introspection.introspectionQuery.renderCompact
+  val data = Json.obj(
+    "operationName" -> Json.fromString("IntrospectionQuery"),
+    "query" -> Json.fromString(query),
+    "variables" -> Json.obj()
+  )
+  val request = Http(uri).headers(List(
+    "content-type" -> "application/json",
+    "accept" -> "application/json"
+  )).postData(data.noSpaces)
+
+  val body = request.asString.throwError.body
+  io.circe.jawn.parse(body) match {
+    case Left(error) => Left(error)
+    case Right(json) =>
+      Right(parseIntrospectionSchemaJson(json))
+  }
+}
+
+def parseSchema(schema: String): Either[Throwable, Schema[_, _]] = {
+  if (schema.startsWith("http://") || schema.startsWith("https://"))
+    parseIntrospectionSchemaUri(schema)
+  else if (schema.endsWith(".graphql")) {
+    parseGraphQLFile(new File(schema))
+  } else {
+    parseIntrospectionSchemaFile(new File(schema))
+  }
+}
+
+def detectBreakingChanges(schema1: String, schema2: String): Vector[SchemaChange] = {
+  val v1Schema = parseSchema(schema1)
+  val v2Schema = parseSchema(schema2)
+  val changes = v2Schema.right.get.compare(v1Schema.right.get)
+  changes.filter(_.breakingChange)
+}
+
+
+@main
+def main(oldSchema: String, newSchema: String) = {
+  val breakingChanges = detectBreakingChanges(oldSchema, newSchema)
+  if (breakingChanges.nonEmpty) {
+    val rendered = breakingChanges
+      .map(change => s" * ${change.description}")
+      .mkString("\n", "\n", "")
+    System.err.println(rendered)
+    exit(1)
+  }
+}
