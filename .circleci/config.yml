@@ -19,7 +19,7 @@ jobs:
     steps:
       - checkout
 
-      - run: sudo curl -L -o /usr/local/bin/amm https://git.io/vAcDx && sudo chmod +x /usr/local/bin/amm && amm
+      - run: sudo curl -L -o /usr/local/bin/amm https://git.io/vAcDx && sudo chmod +x /usr/local/bin/amm
       # run tests!
       - run: ./check-schema.sc http://gdom.graphene-python.org/graphql http://gdom.graphene-python.org/graphql
       - run: ./check-schema.sc ./test/old-schema.graphql ./test/new-schema.graphql
