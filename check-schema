@@ -77,6 +77,8 @@ def main(oldSchema: String, newSchema: String) = {
       .map(change => s" * ${change.description}")
       .mkString("\n", "\n", "")
     System.err.println(rendered)
-    exit(1)
+    sys.exit(1)
+  }else {
+    sys.exit(0)
   }
 }

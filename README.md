@@ -10,10 +10,10 @@ Install ammonite
 # Usage
 
 ## Check two schemas using retrospection query
-    $ ./check-schema.sc http://gdom.graphene-python.org/graphql http://gdom.graphene-python.org/graphql
+    $ ./check-schema http://gdom.graphene-python.org/graphql http://gdom.graphene-python.org/graphql
 
 ## Check two local schemas in IDL format
-    $ ./check-schema.sc ./test/old-schema.graphql ./test/new-schema.graphql
+    $ ./check-schema ./test/old-schema.graphql ./test/new-schema.graphql
 
 Expected output:
 ```

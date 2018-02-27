@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+./check-schema ./test/old-schema.graphql ./test/new-schema.graphql
+if [ $? != 0 ]; then
+    exit 0
+  else
+    exit 1
+fi
+
