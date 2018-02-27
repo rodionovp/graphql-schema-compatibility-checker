@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/rodionovp/graphql-schema-compatibility-checker.svg?style=svg)](https://circleci.com/gh/rodionovp/graphql-schema-compatibility-checker)
 # graphql-schema-compatibility-checker
 A simple tool that checks if GraphQL schema is backward compatible.
 
